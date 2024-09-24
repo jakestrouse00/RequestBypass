@@ -3,102 +3,216 @@ from typing import *
 import httpx
 from httpx import Proxy
 from loguru import logger
-
+import hrequests
 from models import Proxies
+import requests
+from requests.exceptions import *
+from hrequests.cookies import RequestsCookieJar
+
 
 class BypassRequest:
     def __init__(self):
         ...
 
     @staticmethod
-    def custom_get_request(
+    def get(
             url: str,
             headers: dict | None = None,
-            cookies: dict | None | httpx.Cookies = None,
+            cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
-            proxies: dict | Proxies | None = None
+            proxy: str | Proxies | None = None,
+            retries: int = 3
 
-    ) -> httpx.Response | None:
+    ) -> requests.Response | None:
         """
-        :param url: The URL of the resource to send the GET request to.
+        :param url: The URL to send the GET request to.
         :param headers: Optional dictionary of HTTP headers to send with the request.
-        :param cookies: Optional dictionary or RequestsCookieJar object containing cookies to include in the request.
-        :param params: Optional dictionary of query parameters to include in the request.
-        :return: Response object if the request is successful, None otherwise.
+        :param cookies: Optional dictionary or RequestsCookieJar object containing cookies.
+        :param params: Optional dictionary of query string parameters to append to the URL.
+        :param proxy: Optional proxy configuration string or Proxies object.
+        :param retries: Number of times to retry the request in case of certain types of failures.
+        :return: Response object if the request is successful; None otherwise.
         """
-        if proxies is not None:
-            if isinstance(proxies, dict):
-                proxies = Proxies(**proxies)
+        if proxy is not None:
+            if isinstance(proxy, Proxies):
+                proxy = proxy.http
 
-            # proxies = {
-            #     "http://": f"http://{local_settings.http_proxy}",
-            #     "https://": f"http://{local_settings.https_proxy}",
-            # }
-            proxies = {
-                "http://": httpx.HTTPTransport(proxy=f"http://{proxies.http}"),
-                "https://": httpx.HTTPTransport(
-                    proxy=f"http://{proxies.https}"
-                ),
-            }
-        else:
-            proxies = None
+            proxy = f"http://{proxy}"
+        with hrequests.chrome.Session(headers=headers, proxy=proxy, cookies=cookies) as session:
 
-        with httpx.Client(mounts=proxies, headers=headers, cookies=cookies) as client:
-            for _ in range(3):
+            for _ in range(retries):
                 try:
-                    r = client.get(url, params=params)
+                    r = session.get(url, params=params)
                     return r
-                except (
-                        httpx.TimeoutException,
-                        httpx.NetworkError,
-                ):
+                except (Timeout,
+                        ReadTimeout,
+                        ConnectTimeout,
+                        ChunkedEncodingError,
+                        ConnectionError):
                     logger.error("request failed")
 
         return None
 
     @staticmethod
-    def custom_post_request(
+    def post(
             url: str,
             headers: dict | None = None,
             json: dict | None = None,
             data: dict | None = None,
-            cookies: dict | None | httpx.Cookies = None,
+            cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
-            proxies: dict | Proxies | None = None
-    ) -> httpx.Response | None:
-        """
-        :param proxies:
-        :param data:
-        :param url: The URL to which the POST request is sent.
-        :param headers: Optional dictionary of HTTP headers to send with the request.
-        :param json: Optional dictionary of JSON data to include in the request body.
-        :param cookies: Optional dictionary or httpx cookies to include with the request.
-        :param params: Optional dictionary of query string parameters to include in the request.
-        :return: An `httpx.Response` object if the request is successful, otherwise `None`.
-        """
-        if proxies is not None:
-            if isinstance(proxies, dict):
-                proxies = Proxies(**proxies)
+            proxy: str | Proxies | None = None,
+            retries: int = 3
 
-            # proxies = {
-            #     "http://": f"http://{local_settings.http_proxy}",
-            #     "https://": f"http://{local_settings.https_proxy}",
-            # }
-            proxies = {
-                "http://": httpx.HTTPTransport(proxy=f"http://{proxies.http}"),
-                "https://": httpx.HTTPTransport(
-                    proxy=f"http://{proxies.https}"
-                ),
-            }
-        else:
-            proxies = None
-        with httpx.Client(mounts=proxies, headers=headers, cookies=cookies) as client:
-            for _ in range(3):
+    ) -> requests.Response | None:
+        """
+        :param url: The endpoint URL for the POST request.
+        :param headers: Optional dictionary of HTTP headers to send with the request.
+        :param json: Optional dictionary of JSON data to send in the body of the request.
+        :param data: Optional dictionary of form data to send in the body of the request.
+        :param cookies: Optional dictionary or RequestsCookieJar of cookies to send with the request.
+        :param params: Optional dictionary of URL query string parameters.
+        :param proxy: Optional string or Proxies object defining the proxy server to use for the request.
+        :param retries: Optional integer defining the number of times to retry the request in case of errors. Default is 3.
+        :return: A requests.Response object if the request succeeds, or None if all retry attempts fail.
+        """
+        if proxy is not None:
+            if isinstance(proxy, Proxies):
+                proxy = proxy.http
+
+            proxy = f"http://{proxy}"
+        with hrequests.chrome.Session(headers=headers, proxy=proxy, cookies=cookies) as session:
+
+            for _ in range(retries):
                 try:
-                    r = client.post(url, json=json, data=data, params=params)
+                    r = session.post(url, params=params, json=json, data=data)
                     return r
-                except (
-                        httpx.TimeoutException,
-                        httpx.NetworkError,
-                ):
+                except (Timeout,
+                        ReadTimeout,
+                        ConnectTimeout,
+                        ChunkedEncodingError,
+                        ConnectionError):
                     logger.error("request failed")
+
+        return None
+
+    @staticmethod
+    def put(
+            url: str,
+            headers: dict | None = None,
+            json: dict | None = None,
+            data: dict | None = None,
+            cookies: dict | None | RequestsCookieJar = None,
+            params: dict | None = None,
+            proxy: str | Proxies | None = None,
+            retries: int = 3
+
+    ) -> requests.Response | None:
+        """
+        :param url: The endpoint URL for the PUT request.
+        :param headers: Optional dictionary of HTTP headers to send with the request.
+        :param json: Optional dictionary of JSON data to send in the body of the request.
+        :param data: Optional dictionary of form data to send in the body of the request.
+        :param cookies: Optional dictionary or RequestsCookieJar of cookies to send with the request.
+        :param params: Optional dictionary of URL query string parameters.
+        :param proxy: Optional string or Proxies object defining the proxy server to use for the request.
+        :param retries: Optional integer defining the number of times to retry the request in case of errors. Default is 3.
+        :return: A requests.Response object if the request succeeds, or None if all retry attempts fail.
+        """
+        if proxy is not None:
+            if isinstance(proxy, Proxies):
+                proxy = proxy.http
+
+            proxy = f"http://{proxy}"
+        with hrequests.chrome.Session(headers=headers, proxy=proxy, cookies=cookies) as session:
+
+            for _ in range(retries):
+                try:
+                    r = session.put(url, params=params, json=json, data=data)
+                    return r
+                except (Timeout,
+                        ReadTimeout,
+                        ConnectTimeout,
+                        ChunkedEncodingError,
+                        ConnectionError):
+                    logger.error("request failed")
+
+        return None
+
+    @staticmethod
+    def delete(
+            url: str,
+            headers: dict | None = None,
+            cookies: dict | None | RequestsCookieJar = None,
+            params: dict | None = None,
+            proxy: str | Proxies | None = None,
+            retries: int = 3
+
+    ) -> requests.Response | None:
+        """
+        :param url: The endpoint URL for the DELETE request.
+        :param headers: Optional dictionary of HTTP headers to send with the request.
+        :param cookies: Optional dictionary or RequestsCookieJar of cookies to send with the request.
+        :param params: Optional dictionary of URL query string parameters.
+        :param proxy: Optional string or Proxies object defining the proxy server to use for the request.
+        :param retries: Optional integer defining the number of times to retry the request in case of errors. Default is 3.
+        :return: A requests.Response object if the request succeeds, or None if all retry attempts fail.
+        """
+        if proxy is not None:
+            if isinstance(proxy, Proxies):
+                proxy = proxy.http
+
+            proxy = f"http://{proxy}"
+        with hrequests.chrome.Session(headers=headers, proxy=proxy, cookies=cookies) as session:
+
+            for _ in range(retries):
+                try:
+                    r = session.delete(url, params=params)
+                    return r
+                except (Timeout,
+                        ReadTimeout,
+                        ConnectTimeout,
+                        ChunkedEncodingError,
+                        ConnectionError):
+                    logger.error("request failed")
+
+        return None
+
+    @staticmethod
+    def options(
+            url: str,
+            headers: dict | None = None,
+            cookies: dict | None | RequestsCookieJar = None,
+            params: dict | None = None,
+            proxy: str | Proxies | None = None,
+            retries: int = 3
+
+    ) -> requests.Response | None:
+        """
+        :param url: The endpoint URL for the OPTIONS request.
+        :param headers: Optional dictionary of HTTP headers to send with the request.
+        :param cookies: Optional dictionary or RequestsCookieJar of cookies to send with the request.
+        :param params: Optional dictionary of URL query string parameters.
+        :param proxy: Optional string or Proxies object defining the proxy server to use for the request.
+        :param retries: Optional integer defining the number of times to retry the request in case of errors. Default is 3.
+        :return: A requests.Response object if the request succeeds, or None if all retry attempts fail.
+        """
+        if proxy is not None:
+            if isinstance(proxy, Proxies):
+                proxy = proxy.http
+
+            proxy = f"http://{proxy}"
+        with hrequests.chrome.Session(headers=headers, proxy=proxy, cookies=cookies) as session:
+
+            for _ in range(retries):
+                try:
+                    r = session.options(url, params=params)
+                    return r
+                except (Timeout,
+                        ReadTimeout,
+                        ConnectTimeout,
+                        ChunkedEncodingError,
+                        ConnectionError):
+                    logger.error("request failed")
+
+        return None
