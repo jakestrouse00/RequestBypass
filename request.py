@@ -21,10 +21,12 @@ class BypassRequest:
             cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
             proxy: str | Proxies | None = None,
-            retries: int = 3
+            retries: int = 3,
+            nowait: bool = False
 
     ) -> requests.Response | None:
         """
+        :param nowait:
         :param url: The URL to send the GET request to.
         :param headers: Optional dictionary of HTTP headers to send with the request.
         :param cookies: Optional dictionary or RequestsCookieJar object containing cookies.
@@ -42,7 +44,7 @@ class BypassRequest:
 
             for _ in range(retries):
                 try:
-                    r = session.get(url, params=params)
+                    r = session.get(url, params=params, nohup=nowait)
                     return r
                 except (Timeout,
                         ReadTimeout,
@@ -62,10 +64,12 @@ class BypassRequest:
             cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
             proxy: str | Proxies | None = None,
-            retries: int = 3
+            retries: int = 3,
+            nowait: bool = False
 
     ) -> requests.Response | None:
         """
+        :param nowait:
         :param url: The endpoint URL for the POST request.
         :param headers: Optional dictionary of HTTP headers to send with the request.
         :param json: Optional dictionary of JSON data to send in the body of the request.
@@ -85,7 +89,7 @@ class BypassRequest:
 
             for _ in range(retries):
                 try:
-                    r = session.post(url, params=params, json=json, data=data)
+                    r = session.post(url, params=params, json=json, data=data, nohup=nowait)
                     return r
                 except (Timeout,
                         ReadTimeout,
@@ -105,10 +109,12 @@ class BypassRequest:
             cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
             proxy: str | Proxies | None = None,
-            retries: int = 3
+            retries: int = 3,
+            nowait: bool = False
 
     ) -> requests.Response | None:
         """
+        :param nowait:
         :param url: The endpoint URL for the PUT request.
         :param headers: Optional dictionary of HTTP headers to send with the request.
         :param json: Optional dictionary of JSON data to send in the body of the request.
@@ -128,7 +134,7 @@ class BypassRequest:
 
             for _ in range(retries):
                 try:
-                    r = session.put(url, params=params, json=json, data=data)
+                    r = session.put(url, params=params, json=json, data=data, nohup=nowait)
                     return r
                 except (Timeout,
                         ReadTimeout,
@@ -146,10 +152,12 @@ class BypassRequest:
             cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
             proxy: str | Proxies | None = None,
-            retries: int = 3
+            retries: int = 3,
+            nowait: bool = False
 
     ) -> requests.Response | None:
         """
+        :param nowait:
         :param url: The endpoint URL for the DELETE request.
         :param headers: Optional dictionary of HTTP headers to send with the request.
         :param cookies: Optional dictionary or RequestsCookieJar of cookies to send with the request.
@@ -167,7 +175,7 @@ class BypassRequest:
 
             for _ in range(retries):
                 try:
-                    r = session.delete(url, params=params)
+                    r = session.delete(url, params=params, nohup=nowait)
                     return r
                 except (Timeout,
                         ReadTimeout,
@@ -185,10 +193,12 @@ class BypassRequest:
             cookies: dict | None | RequestsCookieJar = None,
             params: dict | None = None,
             proxy: str | Proxies | None = None,
-            retries: int = 3
+            retries: int = 3,
+            nowait: bool = False
 
     ) -> requests.Response | None:
         """
+        :param nowait:
         :param url: The endpoint URL for the OPTIONS request.
         :param headers: Optional dictionary of HTTP headers to send with the request.
         :param cookies: Optional dictionary or RequestsCookieJar of cookies to send with the request.
@@ -206,7 +216,7 @@ class BypassRequest:
 
             for _ in range(retries):
                 try:
-                    r = session.options(url, params=params)
+                    r = session.options(url, params=params, nohup=nowait)
                     return r
                 except (Timeout,
                         ReadTimeout,
